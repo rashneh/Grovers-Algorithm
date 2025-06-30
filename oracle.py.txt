@@ -1,0 +1,53 @@
+from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
+from qiskit.circuit import Gate
+from typing import List
+
+
+def get_bitflip_oracle(cnf: List[List[int]], num_vars: int) -> Gate:
+    # size of circuit = num_inputs + num_clauses (one clause is one ancilla but) + output
+    inputs = QuantumRegister(num_vars, "inputs")
+    output = QuantumRegister(1, "output")
+    ancilla = AncillaRegister(len(cnf), "ancilla")
+    qc = QuantumCircuit(inputs, output, ancilla, name="BitFlipOracle")
+
+    ancilla_bit_index = 0
+    for clause in cnf:
+        set = []
+        for i in clause:
+            if i > 0:
+                qc.x(i)
+            set.append(abs(i)-1)
+        qc.mcx(set,qc.qubits[num_vars+1+ancilla_bit_index])
+        qc.x(qc.qubits[num_vars+1+ancilla_bit_index])
+        ancilla_bit_index = ancilla_bit_index + 1
+    
+    #qc.mcx(qc.qubits[num_vars+1:len(qc)],qc.qubits[num_vars])
+    qc.mcx(qc.qubits[0:num_vars], qc.qubits[num_vars], qc.qubits[num_vars+1:len(qc)], mode='basic')
+
+    ancilla_bit_index = 0
+    for clause in cnf:
+        set = []
+        for i in clause:
+            if i > 0:
+                qc.x(i)
+            set.append(abs(i)-1)
+        qc.x(qc.qubits[num_vars+1+ancilla_bit_index])
+        qc.mcx(set,qc.qubits[num_vars+1+ancilla_bit_index])
+        ancilla_bit_index = ancilla_bit_index + 1
+
+    return qc.to_gate(label="BitFlipOracle")
+
+
+def bf_to_phase_oracle(bf_oracle: Gate, num_vars: int) -> Gate:
+    qc = QuantumCircuit(bf_oracle.num_qubits, name="PhaseOracle")
+    qc.x(num_vars)
+    qc.h(num_vars)
+
+    qc.append(bf_oracle,bf_oracle.num_qubits)
+
+    qc.h(num_vars)
+    qc.x(num_vars)
+    return qc.to_gate(label="PhaseOracle")
+
+    
+    
