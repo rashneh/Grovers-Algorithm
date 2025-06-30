@@ -9,4 +9,6 @@ This project implements Grover’s Algorithm using Qiskit to solve constraint sa
 
 -- A Python-based driver to parse CSV-based constraints and execute the quantum algorithm
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Designed as part of EECS 479 (Quantum Computing) at the University of Michigan.
